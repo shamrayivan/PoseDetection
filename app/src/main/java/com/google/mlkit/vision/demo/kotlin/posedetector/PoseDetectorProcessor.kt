@@ -23,6 +23,7 @@ import com.google.android.odml.image.MlImage
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.demo.GraphicOverlay
 import com.google.mlkit.vision.demo.java.posedetector.classification.PoseClassifierProcessor
+import com.google.mlkit.vision.demo.java.posedetector.classification.PoseClassifierResult
 import com.google.mlkit.vision.demo.kotlin.TrainingMode
 import com.google.mlkit.vision.demo.kotlin.VisionProcessorBase
 import com.google.mlkit.vision.pose.Pose
@@ -34,93 +35,97 @@ import java.util.concurrent.Executors
 
 /** A processor to run pose detector. */
 class PoseDetectorProcessor(
-  private val context: Context,
-  options: PoseDetectorOptionsBase,
-  private val showInFrameLikelihood: Boolean,
-  private val visualizeZ: Boolean,
-  private val rescaleZForVisualization: Boolean,
-  private val runClassification: Boolean,
-  private val isStreamMode: Boolean,
-  private val trainingMode: TrainingMode = TrainingMode.INTENSIVE
+    private val context: Context,
+    options: PoseDetectorOptionsBase,
+    private val showInFrameLikelihood: Boolean,
+    private val visualizeZ: Boolean,
+    private val rescaleZForVisualization: Boolean,
+    private val runClassification: Boolean,
+    private val isStreamMode: Boolean,
+    private val trainingMode: TrainingMode = TrainingMode.INTENSIVE,
+    private val onSuccess:()->Unit ={}
 ) : VisionProcessorBase<PoseDetectorProcessor.PoseWithClassification>(context) {
 
-  private val detector: PoseDetector = PoseDetection.getClient(options)
+    private val detector: PoseDetector = PoseDetection.getClient(options)
     private val classificationExecutor: Executor
 
-  private var poseClassifierProcessor: PoseClassifierProcessor? = null
+    private var poseClassifierProcessor: PoseClassifierProcessor? = null
 
-  /** Internal class to hold Pose and classification results. */
-  class PoseWithClassification(val pose: Pose, val classificationResult: List<String>)
+    /** Internal class to hold Pose and classification results. */
+    class PoseWithClassification(val pose: Pose, val classificationResult: PoseClassifierResult)
 
-  init {
-      classificationExecutor = Executors.newSingleThreadExecutor()
-  }
+    init {
+        classificationExecutor = Executors.newSingleThreadExecutor()
+    }
 
-  override fun stop() {
-    super.stop()
-    detector.close()
-  }
+    override fun stop() {
+        super.stop()
+        detector.close()
+    }
 
-  override fun detectInImage(image: InputImage): Task<PoseWithClassification> {
-    return detector
-      .process(image)
-      .continueWith(classificationExecutor) { task ->
-          val pose = task.getResult()
-          var classificationResult: List<String> = ArrayList()
-          if (runClassification) {
-              if (poseClassifierProcessor == null) {
-                  poseClassifierProcessor = PoseClassifierProcessor(context, isStreamMode,trainingMode)
-              }
-              classificationResult = poseClassifierProcessor!!.getPoseResult(pose)
-          }
-          PoseWithClassification(pose, classificationResult)
-      }
-  }
+    override fun detectInImage(image: InputImage): Task<PoseWithClassification> {
+        return detector
+            .process(image)
+            .continueWith(classificationExecutor) { task ->
+                val pose = task.result
+                var classificationResult: PoseClassifierResult = PoseClassifierResult(false,ArrayList())
+                if (runClassification) {
+                    if (poseClassifierProcessor == null) {
+                        poseClassifierProcessor = PoseClassifierProcessor(context, isStreamMode, trainingMode)
+                    }
+                    classificationResult = poseClassifierProcessor!!.getPoseResult(pose)
+                }
+                PoseWithClassification(pose, classificationResult)
+            }
+    }
 
-  override fun detectInImage(image: MlImage): Task<PoseWithClassification> {
-    return detector
-      .process(image)
-      .continueWith(
-        classificationExecutor
-      ) { task ->
-          val pose = task.getResult()
-          var classificationResult: List<String> = ArrayList()
-          if (runClassification) {
-              if (poseClassifierProcessor == null) {
-                  poseClassifierProcessor = PoseClassifierProcessor(context, isStreamMode,trainingMode)
-              }
-              classificationResult = poseClassifierProcessor!!.getPoseResult(pose)
-          }
-          PoseWithClassification(pose, classificationResult)
-      }
-  }
+    override fun detectInImage(image: MlImage): Task<PoseWithClassification> {
+        return detector
+            .process(image)
+            .continueWith(
+                classificationExecutor
+            ) { task ->
+                val pose = task.getResult()
+                var classificationResult: PoseClassifierResult = PoseClassifierResult(false,ArrayList())
+                if (runClassification) {
+                    if (poseClassifierProcessor == null) {
+                        poseClassifierProcessor = PoseClassifierProcessor(context, isStreamMode, trainingMode)
+                    }
+                    classificationResult = poseClassifierProcessor!!.getPoseResult(pose)
+                }
+                PoseWithClassification(pose, classificationResult)
+            }
+    }
 
-  override fun onSuccess(
-    poseWithClassification: PoseWithClassification,
-    graphicOverlay: GraphicOverlay
-  ) {
-    graphicOverlay.add(
-      PoseGraphic(
-        graphicOverlay,
-        poseWithClassification.pose,
-        showInFrameLikelihood,
-        visualizeZ,
-        rescaleZForVisualization,
-        poseWithClassification.classificationResult
-      )
-    )
-  }
+    override fun onSuccess(
+        poseWithClassification: PoseWithClassification,
+        graphicOverlay: GraphicOverlay
+    ) {
+        graphicOverlay.add(
+            PoseGraphic(
+                graphicOverlay,
+                poseWithClassification.pose,
+                showInFrameLikelihood,
+                visualizeZ,
+                rescaleZForVisualization,
+                poseWithClassification.classificationResult.resultDescription
+            )
+        )
+        if(poseWithClassification.classificationResult.isSuccess){
+            onSuccess()
+        }
+    }
 
-  override fun onFailure(e: Exception) {
-    Log.e(TAG, "Pose detection failed!", e)
-  }
+    override fun onFailure(e: Exception) {
+        Log.e(TAG, "Pose detection failed!", e)
+    }
 
-  override fun isMlImageEnabled(context: Context?): Boolean {
-    // Use MlImage in Pose Detection by default, change it to OFF to switch to InputImage.
-    return true
-  }
+    override fun isMlImageEnabled(context: Context?): Boolean {
+        // Use MlImage in Pose Detection by default, change it to OFF to switch to InputImage.
+        return true
+    }
 
-  companion object {
-    private val TAG = "PoseDetectorProcessor"
-  }
+    companion object {
+        private val TAG = "PoseDetectorProcessor"
+    }
 }

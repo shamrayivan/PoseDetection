@@ -111,9 +111,10 @@ public class PoseClassifierProcessor {
      * 1: PoseClass : [0.0-1.0] confidence
      */
     @WorkerThread
-    public List<String> getPoseResult(Pose pose) {
+    public PoseClassifierResult getPoseResult(Pose pose) {
         Preconditions.checkState(Looper.myLooper() != Looper.getMainLooper());
-        List<String> result = new ArrayList<>();
+        List<String> resultDescriptions = new ArrayList<>();
+        boolean isSuccess = false;
         ClassificationResult classification = poseClassifier.classify(pose);
 
         // Update {@link RepetitionCounter}s if {@code isStreamMode}.
@@ -123,8 +124,8 @@ public class PoseClassifierProcessor {
 
             // Return early without updating repCounter if no pose found.
             if (pose.getAllPoseLandmarks().isEmpty()) {
-                result.add(lastRepResult);
-                return result;
+                resultDescriptions.add(lastRepResult);
+                return new PoseClassifierResult(isSuccess,resultDescriptions);
             }
 
             for (RepetitionCounter repCounter : repCounters) {
@@ -132,17 +133,18 @@ public class PoseClassifierProcessor {
                 int repsAfter = repCounter.addClassificationResult(classification);
                 if (repsAfter > repsBefore) {
                     // Play a fun beep when rep counter updates.
-                    int tone = repsAfter == mode.getIntensity() ? ToneGenerator.TONE_SUP_INTERCEPT_ABBREV : ToneGenerator.TONE_PROP_BEEP;
+                    isSuccess = repsAfter == mode.getIntensity();
+                    int tone = isSuccess ? ToneGenerator.TONE_SUP_INTERCEPT_ABBREV : ToneGenerator.TONE_PROP_BEEP;
                     beep(tone);
                     lastRepResult = String.format(
                         Locale.US, "%s : %d reps", repCounter.getClassName(), repsAfter);
                     break;
                 }
             }
-            result.add(lastRepResult);
+            resultDescriptions.add(lastRepResult);
         }
 
-        // Add maxConfidence class of current frame to result if pose is found.
+        // Add maxConfidence class of current frame to resultDescriptions if pose is found.
         if (!pose.getAllPoseLandmarks().isEmpty()) {
             String maxConfidenceClass = classification.getMaxConfidenceClass();
             String maxConfidenceClassResult = String.format(
@@ -151,10 +153,10 @@ public class PoseClassifierProcessor {
                 maxConfidenceClass,
                 classification.getClassConfidence(maxConfidenceClass)
                     / poseClassifier.confidenceRange());
-            result.add(maxConfidenceClassResult);
+            resultDescriptions.add(maxConfidenceClassResult);
         }
 
-        return result;
+        return new PoseClassifierResult(isSuccess,resultDescriptions);
     }
 
 
