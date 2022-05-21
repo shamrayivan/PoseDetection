@@ -87,26 +87,18 @@ class CameraXLivePreviewActivity :
   private var analysisUseCase: ImageAnalysis? = null
   private var imageProcessor: VisionImageProcessor? = null
   private var needUpdateGraphicOverlayImageSourceInfo = false
-  private var selectedModel = OBJECT_DETECTION
+  private var selectedModel = POSE_DETECTION
   private var lensFacing = CameraSelector.LENS_FACING_BACK
   private var cameraSelector: CameraSelector? = null
+  private lateinit var trainingMode: TrainingMode
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     Log.d(TAG, "onCreate")
-    if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP) {
-      Toast.makeText(
-          applicationContext,
-          "CameraX is only supported on SDK version >=21. Current SDK version is " +
-            VERSION.SDK_INT,
-          Toast.LENGTH_LONG
-        )
-        .show()
-      return
-    }
     if (savedInstanceState != null) {
       selectedModel = savedInstanceState.getString(STATE_SELECTED_MODEL, OBJECT_DETECTION)
     }
+    trainingMode = (intent.extras?.getSerializable(CHOOSER_ARGS) as? TrainingMode)?:TrainingMode.INTENSIVE
     cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
     setContentView(R.layout.activity_vision_camerax_live_preview)
     previewView = findViewById(R.id.preview_view)
@@ -119,6 +111,7 @@ class CameraXLivePreviewActivity :
     }
     val spinner = findViewById<Spinner>(R.id.spinner)
     val options: MutableList<String> = ArrayList()
+    options.add(POSE_DETECTION)
     options.add(OBJECT_DETECTION)
     options.add(OBJECT_DETECTION_CUSTOM)
     options.add(CUSTOM_AUTOML_OBJECT_DETECTION)
@@ -127,7 +120,6 @@ class CameraXLivePreviewActivity :
     options.add(IMAGE_LABELING)
     options.add(IMAGE_LABELING_CUSTOM)
     options.add(CUSTOM_AUTOML_LABELING)
-    options.add(POSE_DETECTION)
     options.add(SELFIE_SEGMENTATION)
     options.add(TEXT_RECOGNITION_LATIN)
     options.add(TEXT_RECOGNITION_CHINESE)
@@ -144,18 +136,14 @@ class CameraXLivePreviewActivity :
     spinner.onItemSelectedListener = this
     val facingSwitch = findViewById<ToggleButton>(R.id.facing_switch)
     facingSwitch.setOnCheckedChangeListener(this)
-    ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application))
-      .get(CameraXViewModel::class.java)
+    ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application))[CameraXViewModel::class.java]
       .processCameraProvider
-      .observe(
-        this,
-        Observer { provider: ProcessCameraProvider? ->
-          cameraProvider = provider
-          if (allPermissionsGranted()) {
-            bindAllCameraUseCases()
-          }
+      .observe(this) { provider: ProcessCameraProvider? ->
+        cameraProvider = provider
+        if (allPermissionsGranted()) {
+          bindAllCameraUseCases()
         }
-      )
+      }
 
     val settingsButton = findViewById<ImageView>(R.id.settings_button)
     settingsButton.setOnClickListener {
@@ -365,7 +353,8 @@ class CameraXLivePreviewActivity :
               visualizeZ,
               rescaleZ,
               runClassification,
-              /* isStreamMode = */ true
+              /* isStreamMode = */ true,
+                trainingMode = trainingMode
             )
           }
           SELFIE_SEGMENTATION -> SegmenterProcessor(this)

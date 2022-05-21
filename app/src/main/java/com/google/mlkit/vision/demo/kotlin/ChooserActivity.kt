@@ -27,7 +27,6 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -39,6 +38,8 @@ import com.google.mlkit.vision.demo.R
  * Demo app chooser which takes care of runtime permission requesting and allow you pick from all
  * available testing Activities.
  */
+
+public const val CHOOSER_ARGS = "CHOOSER_ARGS"
 class ChooserActivity :
     AppCompatActivity(),
     ActivityCompat.OnRequestPermissionsResultCallback {
@@ -156,7 +157,9 @@ class ChooserActivity :
 
 
     private fun openLivePreview(mode:TrainingMode=TrainingMode.INTENSIVE) {
-        startActivity(Intent(this, CameraXLivePreviewActivity::class.java))
+        val intent = Intent(this, CameraXLivePreviewActivity::class.java)
+        intent.putExtra(CHOOSER_ARGS,mode)
+        startActivity(intent)
     }
 
     private class MyArrayAdapter(
@@ -179,7 +182,7 @@ class ChooserActivity :
             (view!!.findViewById<View>(android.R.id.text1) as TextView).setText(mode.descriptionId)
 
 
-            (view.findViewById<View>(android.R.id.text2) as TextView).setText(context.getString(R.string.text_training_exercises_count, mode.intensivity))
+            (view.findViewById<View>(android.R.id.text2) as TextView).setText(context.getString(R.string.text_training_exercises_count, mode.intensity))
             view.setOnClickListener { onModeClick(mode) }
 
             return view
@@ -192,8 +195,8 @@ class ChooserActivity :
     }
 }
 
-public enum class TrainingMode(val descriptionId: Int, val intensivity: Int) {
-    POWER(R.string.text_training_power, 10),
+public enum class TrainingMode(val descriptionId: Int, val intensity: Int) {
+    POWER(R.string.text_training_power, 5),
     INTENSIVE(R.string.text_training_intensive, 12),
     CALORIES_BURN(R.string.text_training_calories_burn, 15),
 }
