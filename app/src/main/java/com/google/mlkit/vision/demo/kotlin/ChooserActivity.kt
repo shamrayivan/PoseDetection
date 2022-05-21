@@ -19,24 +19,20 @@ package com.google.mlkit.vision.demo.kotlin
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.AdapterView.OnItemClickListener
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.demo.R
-import java.util.*
 
 
 /**
@@ -45,8 +41,7 @@ import java.util.*
  */
 class ChooserActivity :
     AppCompatActivity(),
-    ActivityCompat.OnRequestPermissionsResultCallback,
-    OnItemClickListener {
+    ActivityCompat.OnRequestPermissionsResultCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
@@ -56,15 +51,14 @@ class ChooserActivity :
         val listView =
             findViewById<ListView>(R.id.test_activity_list_view)
         val adapter =
-            MyArrayAdapter(this, android.R.layout.simple_list_item_2, CLASSES)
-        adapter.setDescriptionIds(DESCRIPTION_IDS)
+            MyArrayAdapter(this, android.R.layout.simple_list_item_2, TrainingMode.values()) { mode ->
+                Toast.makeText(this, "Mode ${mode.name}", Toast.LENGTH_SHORT).show()
+
+            }
         listView.adapter = adapter
-        listView.onItemClickListener = this
 
         if (!allPermissionsGranted()) {
             getRuntimePermissions()
-        } else {
-            openLivePreview()
         }
     }
 
@@ -110,11 +104,11 @@ class ChooserActivity :
             }
         }
     }
-
-    override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
-        val clicked = CLASSES[position]
-        startActivity(Intent(this, clicked))
-    }
+//
+//    override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
+//        val clicked = CLASSES[position]
+//        startActivity(Intent(this, clicked))
+//    }
 
     private fun getRequiredPermissions(): Array<String?> {
         return try {
@@ -168,9 +162,9 @@ class ChooserActivity :
     private class MyArrayAdapter(
         private val ctx: Context,
         resource: Int,
-        private val classes: Array<Class<*>>
-    ) : ArrayAdapter<Class<*>>(ctx, resource, classes) {
-        private var descriptionIds: IntArray? = null
+        private val modes: Array<TrainingMode>,
+        private val onModeClick: (TrainingMode) -> Unit
+    ) : ArrayAdapter<TrainingMode>(ctx, resource, modes) {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             var view = convertView
@@ -181,44 +175,25 @@ class ChooserActivity :
                 view = inflater.inflate(android.R.layout.simple_list_item_2, null)
             }
 
-            (view!!.findViewById<View>(android.R.id.text1) as TextView).text =
-                classes[position].simpleName
-            descriptionIds?.let {
-                (view.findViewById<View>(android.R.id.text2) as TextView).setText(it[position])
-            }
+            val mode = modes[position]
+            (view!!.findViewById<View>(android.R.id.text1) as TextView).setText(mode.descriptionId)
+
+
+            (view.findViewById<View>(android.R.id.text2) as TextView).setText(context.getString(R.string.text_training_exercises_count, mode.intensivity))
+            view.setOnClickListener { onModeClick(mode) }
 
             return view
         }
-
-        fun setDescriptionIds(descriptionIds: IntArray) {
-            this.descriptionIds = descriptionIds
-        }
-
-
     }
 
     companion object {
         private const val TAG = "ChooserActivity"
         private const val PERMISSION_REQUESTS_REQUEST_CODE = 1
-        private val CLASSES = if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP)
-            arrayOf<Class<*>>(
-                LivePreviewActivity::class.java,
-                StillImageActivity::class.java,
-            ) else arrayOf<Class<*>>(
-            LivePreviewActivity::class.java,
-            StillImageActivity::class.java,
-            CameraXLivePreviewActivity::class.java,
-            CameraXSourceDemoActivity::class.java
-        )
-        private val DESCRIPTION_IDS = if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP)
-            intArrayOf(
-                R.string.desc_camera_source_activity,
-                R.string.desc_still_image_activity,
-            ) else intArrayOf(
-            R.string.desc_camera_source_activity,
-            R.string.desc_still_image_activity,
-            R.string.desc_camerax_live_preview_activity,
-            R.string.desc_cameraxsource_demo_activity
-        )
     }
+}
+
+public enum class TrainingMode(val descriptionId: Int, val intensivity: Int) {
+    POWER(R.string.text_training_power, 10),
+    INTENSIVE(R.string.text_training_intensive, 12),
+    CALORIES_BURN(R.string.text_training_calories_burn, 15),
 }

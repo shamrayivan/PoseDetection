@@ -145,4 +145,13 @@
     <string name="text_please_give_permission">Пожалуйста, подтвердите разрешения=)</string>
     <string name="text_confirm_permission">Подтвердить</string>
 
+
+    <!-- Strings for segmentation preference. -->
+    <string name="text_training_power" translatable="false">Силовая</string>
+    <string name="text_training_intensive" translatable="false">Интенсивная</string>
+    <string name="text_training_calories_burn">Жиросжигающая</string>
+
+    <string name="text_training_exercises_count">Количество упражнений %d</string>
+
+
 </resources>
