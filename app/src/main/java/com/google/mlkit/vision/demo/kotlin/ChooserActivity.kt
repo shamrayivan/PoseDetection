@@ -52,7 +52,7 @@ class ChooserActivity :
             findViewById<ListView>(R.id.test_activity_list_view)
         val adapter =
             MyArrayAdapter(this, android.R.layout.simple_list_item_2, TrainingMode.values()) { mode ->
-                Toast.makeText(this, "Mode ${mode.name}", Toast.LENGTH_SHORT).show()
+                openLivePreview(mode)
 
             }
         listView.adapter = adapter
@@ -155,7 +155,7 @@ class ChooserActivity :
     }
 
 
-    private fun openLivePreview() {
+    private fun openLivePreview(mode:TrainingMode=TrainingMode.INTENSIVE) {
         startActivity(Intent(this, CameraXLivePreviewActivity::class.java))
     }
 
