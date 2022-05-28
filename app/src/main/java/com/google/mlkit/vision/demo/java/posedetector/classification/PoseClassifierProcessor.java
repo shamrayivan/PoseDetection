@@ -47,8 +47,10 @@ public class PoseClassifierProcessor {
     // for your pose samples.
     private static final String PUSHUPS_CLASS = "pushups_down";
     private static final String SQUATS_CLASS = "squats_down";
+    private static final String PULL_CLASS = "pull_down";
+    private static final String CRUNCHES_CLASS = "crunches_down";
     private static final String[] POSE_CLASSES = {
-        PUSHUPS_CLASS, SQUATS_CLASS
+        PUSHUPS_CLASS, SQUATS_CLASS, PULL_CLASS, CRUNCHES_CLASS
     };
 
     private final boolean isStreamMode;
@@ -137,7 +139,7 @@ public class PoseClassifierProcessor {
                     int tone = isSuccess ? ToneGenerator.TONE_SUP_INTERCEPT_ABBREV : ToneGenerator.TONE_PROP_BEEP;
                     beep(tone);
                     lastRepResult = String.format(
-                        Locale.US, "%s : %d reps", repCounter.getClassName(), repsAfter);
+                        Locale.US, "%s : %d кол-во повторений", repCounter.getClassName(), repsAfter);
                     break;
                 }
             }
