@@ -15,7 +15,7 @@
       android:layout_width="match_parent"
       android:layout_height="50dp"
       android:layout_marginTop="32dp"
-      app:srcCompat="@drawable/logo_mlkit" />
+      app:srcCompat="@mipmap/ic_launcher" />
 
   <TextView
       android:layout_width="match_parent"
