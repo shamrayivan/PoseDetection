@@ -96,7 +96,7 @@ class CameraXLivePreviewActivity :
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
         if (savedInstanceState != null) {
-            selectedModel = savedInstanceState.getString(STATE_SELECTED_MODEL, OBJECT_DETECTION)
+            selectedModel = savedInstanceState.getString(STATE_SELECTED_MODEL, POSE_DETECTION)
         }
         trainingMode = (intent.extras?.getSerializable(CHOOSER_ARGS) as? TrainingMode) ?: TrainingMode.INTENSIVE
         cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
@@ -109,31 +109,6 @@ class CameraXLivePreviewActivity :
         if (graphicOverlay == null) {
             Log.d(TAG, "graphicOverlay is null")
         }
-        val spinner = findViewById<Spinner>(R.id.spinner)
-        val options: MutableList<String> = ArrayList()
-        options.add(POSE_DETECTION)
-        options.add(OBJECT_DETECTION)
-        options.add(OBJECT_DETECTION_CUSTOM)
-        options.add(CUSTOM_AUTOML_OBJECT_DETECTION)
-        options.add(FACE_DETECTION)
-        options.add(BARCODE_SCANNING)
-        options.add(IMAGE_LABELING)
-        options.add(IMAGE_LABELING_CUSTOM)
-        options.add(CUSTOM_AUTOML_LABELING)
-        options.add(SELFIE_SEGMENTATION)
-        options.add(TEXT_RECOGNITION_LATIN)
-        options.add(TEXT_RECOGNITION_CHINESE)
-        options.add(TEXT_RECOGNITION_DEVANAGARI)
-        options.add(TEXT_RECOGNITION_JAPANESE)
-        options.add(TEXT_RECOGNITION_KOREAN)
-
-        // Creating adapter for spinner
-        val dataAdapter = ArrayAdapter(this, R.layout.spinner_style, options)
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        // attaching data adapter to spinner
-        spinner.adapter = dataAdapter
-        spinner.onItemSelectedListener = this
         val facingSwitch = findViewById<ToggleButton>(R.id.facing_switch)
         facingSwitch.setOnCheckedChangeListener(this)
         ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application))[CameraXViewModel::class.java]

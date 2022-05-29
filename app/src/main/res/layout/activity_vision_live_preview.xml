@@ -48,13 +48,6 @@
         android:textOff=""
         android:textOn=""/>
 
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"/>
-
   </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -28,12 +28,6 @@
       app:layout_constraintEnd_toEndOf="parent"
       android:background="#000">
 
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"/>
-
     <ToggleButton
         android:id="@+id/facing_switch"
         android:layout_width="48dp"

@@ -105,11 +105,6 @@ class ChooserActivity :
             }
         }
     }
-//
-//    override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
-//        val clicked = CLASSES[position]
-//        startActivity(Intent(this, clicked))
-//    }
 
     private fun getRequiredPermissions(): Array<String?> {
         return try {
