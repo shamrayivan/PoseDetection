@@ -40,6 +40,7 @@ import com.google.mlkit.vision.demo.R
  */
 
 public const val CHOOSER_ARGS = "CHOOSER_ARGS"
+
 class ChooserActivity :
     AppCompatActivity(),
     ActivityCompat.OnRequestPermissionsResultCallback {
@@ -52,7 +53,11 @@ class ChooserActivity :
         val listView =
             findViewById<ListView>(R.id.test_activity_list_view)
         val adapter =
-            MyArrayAdapter(this, android.R.layout.simple_list_item_2, TrainingMode.values()) { mode ->
+            MyArrayAdapter(
+                this,
+                android.R.layout.simple_list_item_2,
+                TrainingMode.values()
+            ) { mode ->
                 openLivePreview(mode)
 
             }
@@ -151,9 +156,9 @@ class ChooserActivity :
     }
 
 
-    private fun openLivePreview(mode:TrainingMode=TrainingMode.INTENSIVE) {
+    private fun openLivePreview(mode: TrainingMode = TrainingMode.INTENSIVE) {
         val intent = Intent(this, CameraXLivePreviewActivity::class.java)
-        intent.putExtra(CHOOSER_ARGS,mode)
+        intent.putExtra(CHOOSER_ARGS, mode)
         startActivity(intent)
     }
 
@@ -165,23 +170,24 @@ class ChooserActivity :
     ) : ArrayAdapter<TrainingMode>(ctx, resource, modes) {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            var view = convertView
+            val view:View = convertView?:getInflator().inflate(android.R.layout.simple_list_item_2, null)
 
-            if (convertView == null) {
-                val inflater =
-                    ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-                view = inflater.inflate(android.R.layout.simple_list_item_2, null)
+            return view.apply {
+                val mode = modes[position]
+                (view.findViewById<View>(android.R.id.text1) as TextView).setText(mode.descriptionId)
+
+                val exercisesCountDescription =
+                    if (mode == TrainingMode.FREE)
+                        context.getString(R.string.text_training_exercises_countless)
+                    else
+                        context.getString(R.string.text_training_exercises_count, mode.intensity)
+                 (view.findViewById<View>(android.R.id.text2) as TextView).run {
+                    text = exercisesCountDescription
+                    setOnClickListener { onModeClick(mode) }
+                }
             }
-
-            val mode = modes[position]
-            (view!!.findViewById<View>(android.R.id.text1) as TextView).setText(mode.descriptionId)
-
-
-            (view.findViewById<View>(android.R.id.text2) as TextView).setText(context.getString(R.string.text_training_exercises_count, mode.intensity))
-            view.setOnClickListener { onModeClick(mode) }
-
-            return view
         }
+        private fun getInflator() = ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
     }
 
     companion object {
@@ -194,4 +200,5 @@ public enum class TrainingMode(val descriptionId: Int, val intensity: Int) {
     POWER(R.string.text_training_power, 5),
     INTENSIVE(R.string.text_training_intensive, 12),
     CALORIES_BURN(R.string.text_training_calories_burn, 15),
+    FREE(R.string.text_training_free, Int.MAX_VALUE),
 }

@@ -9,6 +9,7 @@
         <entry key="app/src/main/res/layout/activity_chooser.xml" value="0.1941031941031941" />
         <entry key="app/src/main/res/layout/activity_vision_camerax_live_preview.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_vision_live_preview.xml" value="0.1" />
+        <entry key="app/src/main/res/xml/preference_live_preview_quickstart.xml" value="0.25" />
       </map>
     </option>
   </component>
