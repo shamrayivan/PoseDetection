@@ -45,12 +45,13 @@ public class PoseClassifierProcessor {
     // Specify classes for which we want rep counting.
     // These are the labels in the given {@code POSE_SAMPLES_FILE}. You can set your own class labels
     // for your pose samples.
-    private static final String PUSHUPS_CLASS = "pushups_down";
-    private static final String SQUATS_CLASS = "squats_down";
-    private static final String PULL_CLASS = "pull_down";
-    private static final String CRUNCHES_CLASS = "crunches_down";
+    private static final String PUSHUPS_CLASS = "Отжимания";
+    private static final String SQUATS_CLASS = "Приседания";
+    private static final String PULLUP_CLASS = "Подтягивания";
+    private static final String CRUNCHES_CLASS = "Скручивания";
+    private static final String PARALLELBARS_CLASS = "Брусья";
     private static final String[] POSE_CLASSES = {
-        PUSHUPS_CLASS, SQUATS_CLASS, PULL_CLASS, CRUNCHES_CLASS
+        PUSHUPS_CLASS, SQUATS_CLASS, PULLUP_CLASS, CRUNCHES_CLASS, PARALLELBARS_CLASS
     };
 
     private final boolean isStreamMode;
@@ -139,7 +140,7 @@ public class PoseClassifierProcessor {
                     int tone = isSuccess ? ToneGenerator.TONE_SUP_INTERCEPT_ABBREV : ToneGenerator.TONE_PROP_BEEP;
                     beep(tone);
                     lastRepResult = String.format(
-                        Locale.US, "%s : %d кол-во повторений", repCounter.getClassName(), repsAfter);
+                        Locale.US, "%s : %d повт.", repCounter.getClassName(), repsAfter);
                     break;
                 }
             }
@@ -151,7 +152,7 @@ public class PoseClassifierProcessor {
             String maxConfidenceClass = classification.getMaxConfidenceClass();
             String maxConfidenceClassResult = String.format(
                 Locale.US,
-                "%s : %.2f confidence",
+            //    "%s : %.2f ",
                 maxConfidenceClass,
                 classification.getClassConfidence(maxConfidenceClass)
                     / poseClassifier.confidenceRange());
